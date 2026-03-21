@@ -1,11 +1,14 @@
-package com.compi.formularios.render
+package com.compi.formularios.render // Paquete actualizado
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.compi.formularios.modelos.Elemento
 import com.compi.formularios.modelos.Tabla
 
 @Composable
@@ -13,8 +16,28 @@ fun RenderTabla(
     tabla: Tabla,
     respuestas: MutableMap<String, Any>
 ) {
-    val elementosPorFila = 2
-    val filas = tabla.elements.chunked(elementosPorFila)
+    // 1. EXTRAER Y NORMALIZAR FILAS
+    // Usamos el nombre que definiste en el CUP: "ELEMENTS"
+    val contenido = tabla.elements
+
+    @Suppress("UNCHECKED_CAST")
+    val filas: List<List<Elemento>> = when {
+        contenido.isEmpty() -> {
+            println("DEBUG: Tabla vacía") // Revisa Logcat
+            emptyList()
+        }
+        contenido[0] is List<*> -> {
+            contenido as List<List<Elemento>>
+        }
+        else -> {
+            // Si el CUP mandó una lista simple, la convertimos a filas de 1 sola celda
+            contenido.map { listOf(it as Elemento) }
+        }
+    }
+
+    // 2. RENDERIZADO
+    // Si la tabla no tiene ancho definido, le damos uno por defecto para que no sea 0dp
+    val anchoTabla = (tabla.width ?: 300.0).toDouble().dp
 
     Column(
         modifier = Modifier
@@ -22,17 +45,28 @@ fun RenderTabla(
                 start = (tabla.pointX ?: 0.0).toDouble().dp,
                 top = (tabla.pointY ?: 0.0).toDouble().dp
             )
-            .width((tabla.width ?: 300.0).toDouble().dp)
+            .width(anchoTabla)
+            .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
     ) {
+        if (filas.isEmpty()) {
+            // Esto te ayudará a saber si la tabla está ahí pero vacía
+            Box(Modifier.padding(8.dp)) { androidx.compose.material3.Text("Tabla sin datos") }
+        }
+
         filas.forEach { fila ->
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+            ) {
                 fila.forEach { elemento ->
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(4.dp)
-                            .border(1.dp, MaterialTheme.colorScheme.outline)
-                            .padding(6.dp)
+                            .border(0.5.dp, Color.LightGray)
+                            .padding(8.dp)
+                            .defaultMinSize(minHeight = 40.dp), // Evita que celdas vacías midan 0px
+                        contentAlignment = Alignment.CenterStart
                     ) {
                         RenderElemento(elemento, respuestas)
                     }

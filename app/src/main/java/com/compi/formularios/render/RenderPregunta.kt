@@ -1,6 +1,7 @@
 package com.compi.formularios.render
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -9,31 +10,196 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.compi.formularios.modelos.Pregunta
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RenderPregunta(
     pregunta: Pregunta,
     respuestas: MutableMap<String, Any>
 ) {
     val estilos = pregunta.estilos
-    val color = obtenerColor(estilos?.get("color"))
-    val tamanoRaw = estilos?.get("text size") ?: 16.0
-    val fontSize = (tamanoRaw as? Number)?.toFloat() ?: 16f
+    val colorTexto = obtenerColor(estilos?.get("color"))
+    val tipo = pregunta.type.uppercase()
+    val llave = pregunta.label.replace("\"", "").trim()
+    var opcionesDinamicas by remember { mutableStateOf<List<String>>(emptyList()) }
+    var estaCargando by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text(
-            text = pregunta.label.replace("\"", ""),
-            color = color,
-            fontSize = fontSize.sp
-        )
+    // 2. POKEMON_API:n:m
+    LaunchedEffect(pregunta.options) {
+        val comando = pregunta.options.firstOrNull() ?: ""
 
-        pregunta.options.forEach { opcion ->
-            val textoOpcion = opcion.replace("\"", "")
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = (respuestas[pregunta.type] == textoOpcion),
-                    onClick = { respuestas[pregunta.type] = textoOpcion }
-                )
-                Text(textoOpcion, color = color)
+        if (comando.startsWith("POKEMON_API:")) {
+            estaCargando = true
+            try {
+                // Extraemos el rango del string "POKEMON_API:1:20"
+                val partes = comando.split(":")
+                val inicio = partes[1].toInt()
+                val fin = partes[2].toInt()
+
+                opcionesDinamicas = PokeApiHelper.obtenerRangoPokemones(inicio, fin)
+            } catch (e: Exception) {
+                opcionesDinamicas = listOf("Error al cargar Pokémones")
+            }
+            estaCargando = false
+        } else {
+            opcionesDinamicas = pregunta.options.map { it.replace("\"", "").trim() }
+        }
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = ParserEmojis.procesar(llave),
+                color = colorTexto,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            when (tipo) {
+    /*Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = ParserEmojis.procesar(llave),
+                color = colorTexto,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            when (tipo) {*/
+                "OPEN" -> {
+                    var textoIngresado by remember { mutableStateOf(respuestas[llave]?.toString() ?: "") }
+                    OutlinedTextField(
+                        value = textoIngresado,
+                        onValueChange = {
+                            textoIngresado = it
+                            respuestas[llave] = it
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Escribe aquí...") }
+                    )
+                }
+
+                /*"DROP" -> {
+                    var expanded by remember { mutableStateOf(false) }
+                    val opcionSeleccionada = respuestas[llave]?.toString() ?: "Selecciona una opción"
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = ParserEmojis.procesar(opcionSeleccionada),
+                            onValueChange = {},
+                            readOnly = true, // Evita que el usuario escriba
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth(),
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            pregunta.options.forEach { opcion ->
+                                val textoOpcion = opcion.replace("\"", "").trim()
+                                DropdownMenuItem(
+                                    text = { Text(ParserEmojis.procesar(textoOpcion)) },
+                                    onClick = {
+                                        respuestas[llave] = textoOpcion
+                                        expanded = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                                )
+                            }
+                        }
+                    }
+                }*/
+
+                "DROP" -> {
+                    var expanded by remember { mutableStateOf(false) }
+                    val seleccionada = respuestas[llave]?.toString() ?: "Selecciona una opción"
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { if (!estaCargando) expanded = !expanded }
+                    ) {
+                        OutlinedTextField(
+                            value = if (estaCargando) "Buscando en la PokéAPI..." else seleccionada,
+                            onValueChange = {},
+                            readOnly = true,
+                            trailingIcon = {
+                                if (estaCargando) {
+                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                } else {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                }
+                            },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+
+                        if (!estaCargando) {
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                opcionesDinamicas.forEach { opcion ->
+                                    DropdownMenuItem(
+                                        text = { Text(opcion) },
+                                        onClick = {
+                                            respuestas[llave] = opcion
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                "MULTIPLE" -> {
+                    pregunta.options.forEach { opcion ->
+                        val textoOpcion = opcion.replace("\"", "").trim()
+                        val seleccionados = respuestas[llave] as? MutableList<String> ?: mutableListOf()
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = seleccionados.contains(textoOpcion),
+                                onCheckedChange = { checked ->
+                                    if (checked) {
+                                        if (!seleccionados.contains(textoOpcion)) seleccionados.add(textoOpcion)
+                                    } else {
+                                        seleccionados.remove(textoOpcion)
+                                    }
+                                    respuestas[llave] = seleccionados.toMutableList()
+                                }
+                            )
+                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto)
+                        }
+                    }
+                }
+
+                "SELECT" -> {
+                    pregunta.options.forEach { opcion ->
+                        val textoOpcion = opcion.replace("\"", "").trim()
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = (respuestas[llave] == textoOpcion),
+                                onClick = { respuestas[llave] = textoOpcion }
+                            )
+                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto)
+                        }
+                    }
+                }
             }
         }
     }

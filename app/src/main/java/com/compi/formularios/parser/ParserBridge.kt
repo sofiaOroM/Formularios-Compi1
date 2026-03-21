@@ -30,11 +30,10 @@ object ParserBridge {
     }
 
     fun convertir(obj: Any?): Elemento? {
-        if (obj !is Map<*, *>) return null
+        val mapa = obj as? Map<*, *> ?: return null
 
-        // CUP genera: {type="SECTION", attrs={...}}
-        val type = obj["type"] as? String ?: return null
-        val attrs = obj["attrs"] as? Map<*, *> ?: emptyMap<Any, Any>()
+        val type = mapa["type"] as? String ?: return null
+        val attrs = (mapa["attrs"] as? Map<*, *>) ?: mapa
 
         return when (type) {
             "SECTION" -> convertirSeccion(attrs)
@@ -46,8 +45,8 @@ object ParserBridge {
     }
 
     private fun convertirSeccion(attrs: Map<*, *>): Seccion {
-        val elementosRaw = attrs["ELEMENTS"] as? List<*>
-        val elementos = elementosRaw?.mapNotNull { convertir(it) } ?: emptyList()
+        val elementosRaw = attrs["ELEMENTS"] as? List<List<*>> // CUP envía lista de listas
+        val elementos = elementosRaw?.flatten()?.mapNotNull { convertir(it) } ?: emptyList()
 
         return Seccion(
             elements = elementos,
@@ -70,11 +69,16 @@ object ParserBridge {
     }
 
     private fun convertirTabla(attrs: Map<*, *>): Tabla {
-        val elementosRaw = attrs["ELEMENTS"] as? List<*>
-        val elementos = elementosRaw?.mapNotNull { convertir(it) } ?: emptyList()
+        val filasRaw = attrs["ELEMENTS"] as? List<*>
+
+        val filasConvertidas = filasRaw?.mapNotNull { fila ->
+            (fila as? List<*>)?.mapNotNull { celda ->
+                convertir(celda)
+            }
+        } ?: emptyList()
 
         return Tabla(
-            elements = elementos,
+            elements = filasConvertidas,
             width = getDouble(attrs["WIDTH"]),
             height = getDouble(attrs["HEIGHT"]),
             pointX = getDouble(attrs["POINTX"]),
@@ -84,10 +88,19 @@ object ParserBridge {
     }
 
     private fun convertirPregunta(type: String, attrs: Map<*, *>): Pregunta {
+        val optionsRaw = attrs["OPTIONS"]
+        val listaFinal = mutableListOf<String>()
+        if (optionsRaw is Map<*, *>) {
+            val inicio = getDouble(optionsRaw["start"])?.toInt() ?: 1
+            val final = getDouble(optionsRaw["end"])?.toInt() ?: 10
+            listaFinal.add("POKEMON_API:$inicio:$final")
+        } else if (optionsRaw is List<*>) {
+            listaFinal.addAll(optionsRaw.map { it.toString() })
+        }
         return Pregunta(
             type = type,
             label = attrs["LABEL"]?.toString() ?: "",
-            options = if (attrs["OPTIONS"] is List<*>) attrs["OPTIONS"] as List<String> else emptyList(),
+            options = listaFinal,
             correct = attrs["CORRECT"],
             pointX = getDouble(attrs["POINTX"]),
             pointY = getDouble(attrs["POINTY"]),

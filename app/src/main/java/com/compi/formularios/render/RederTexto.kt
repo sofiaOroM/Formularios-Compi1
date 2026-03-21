@@ -17,7 +17,7 @@ fun RenderTexto(texto: Texto) {
     val fontSize = (tamanoRaw as? Number)?.toFloat() ?: 16f
 
     Text(
-        text = texto.content.replace("\"", ""),
+        text = ParserEmojis.procesar(texto.content),
         fontSize = fontSize.sp,
         color = colorFinal,
         modifier = Modifier.padding(
