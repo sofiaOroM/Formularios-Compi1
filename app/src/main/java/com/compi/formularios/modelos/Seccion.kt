@@ -1,8 +1,8 @@
 package com.compi.formularios.modelos
 
 data class Seccion(
-    val elements: List<Elemento>, // CUP usa ELEMENTS
-    val orientation: String = "VERTICAL", // CUP usa ORIENTATION
+    val elements: List<Elemento>, //ELEMENTS
+    val orientation: String = "VERTICAL", //ORIENTATION
     val width: Double? = null,
     val height: Double? = null,
     override val pointX: Double? = 0.0,

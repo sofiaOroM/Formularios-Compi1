@@ -50,7 +50,7 @@ object ParserBridge {
         val elementos = elementosRaw?.mapNotNull { convertir(it) } ?: emptyList()
 
         return Seccion(
-            elements = elementos, // Nombre según CUP
+            elements = elementos,
             orientation = attrs["ORIENTATION"]?.toString() ?: "VERTICAL",
             width = getDouble(attrs["WIDTH"]),
             height = getDouble(attrs["HEIGHT"]),
@@ -62,7 +62,7 @@ object ParserBridge {
 
     private fun convertirTexto(attrs: Map<*, *>): Texto {
         return Texto(
-            content = attrs["CONTENT"]?.toString() ?: "", // Nombre según CUP
+            content = attrs["CONTENT"]?.toString() ?: "",
             pointX = getDouble(attrs["POINTX"]),
             pointY = getDouble(attrs["POINTY"]),
             estilos = attrs["STYLES"] as? Map<String, Any>
@@ -74,7 +74,7 @@ object ParserBridge {
         val elementos = elementosRaw?.mapNotNull { convertir(it) } ?: emptyList()
 
         return Tabla(
-            elements = elementos, // Nombre según CUP
+            elements = elementos,
             width = getDouble(attrs["WIDTH"]),
             height = getDouble(attrs["HEIGHT"]),
             pointX = getDouble(attrs["POINTX"]),
@@ -88,14 +88,13 @@ object ParserBridge {
             type = type,
             label = attrs["LABEL"]?.toString() ?: "",
             options = if (attrs["OPTIONS"] is List<*>) attrs["OPTIONS"] as List<String> else emptyList(),
-            correct = attrs["CORRECT"], // Puede ser un Double o una Lista
+            correct = attrs["CORRECT"],
             pointX = getDouble(attrs["POINTX"]),
             pointY = getDouble(attrs["POINTY"]),
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }
 
-    // Función centralizada para evitar errores de Float/Int/Double
     private fun getDouble(value: Any?): Double? {
         return when (value) {
             is Number -> value.toDouble()

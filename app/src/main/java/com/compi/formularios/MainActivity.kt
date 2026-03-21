@@ -16,7 +16,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FormulariosTheme {
-                // Estados de navegación
                 var pantallaActual by remember { mutableStateOf("opciones") }
                 var codigoEditor by remember { mutableStateOf("") }
                 var elementosFormulario by remember { mutableStateOf<List<Elemento>>(emptyList()) }
@@ -77,7 +76,6 @@ class MainActivity : ComponentActivity() {
                 java.text.SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", java.util.Locale.getDefault())
             val fechaFormateada = sdf.format(java.util.Date())
 
-            // Nombre del archivo solicitado
             val nombreArchivo = "Reporte_$fechaFormateada.txt"
 
             val contenido = StringBuilder().apply {
@@ -100,44 +98,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-/*class MainActivity : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContent {
-
-            FormulariosTheme {
-
-                var pantalla by remember { mutableStateOf("editor") }
-                var elementos by remember { mutableStateOf<List<Elemento>>(emptyList()) }
-                var error by remember { mutableStateOf("") }
-
-                when (pantalla) {
-
-                    "editor" -> PantallaEditor(
-                        onGenerar = { codigo ->
-
-                            try {
-
-                                elementos = ParserBridge.parsearFormulario(codigo)
-                                error = ""
-                                pantalla = "formulario"
-
-                            } catch (e: Exception) {
-
-                                error = e.message ?: "Error desconocido"
-                            }
-                        },
-                        error = error
-                    )
-
-                    "formulario" -> PantallaFormulario(
-                        elementos = elementos,
-                        onRegresar = { pantalla = "editor" }
-                    )
-                }
-            }
-        }
-    }
-}*/

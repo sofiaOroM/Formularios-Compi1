@@ -18,20 +18,3 @@ fun RenderElemento(elemento: Elemento, respuestas: MutableMap<String, Any>) {
         }
     }
 }
-/*@Composable
-fun RenderElemento(
-    elemento: Elemento,
-    respuestas: MutableMap<String, Any>,
-    estilos: Map<String, Any>? = null
-) {
-    androidx.compose.foundation.layout.Box(
-        modifier = androidx.compose.ui.Modifier.padding(bottom = 24.dp)
-    ) {
-        when (elemento) {
-            is Seccion -> RenderSeccion(elemento, respuestas)
-            is Texto -> RenderTexto(elemento, estilos)
-            is Tabla -> RenderTabla(elemento, respuestas)
-            is Pregunta -> RenderPregunta(elemento, respuestas)
-        }
-    }
-}*/

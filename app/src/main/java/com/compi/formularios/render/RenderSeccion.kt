@@ -19,43 +19,8 @@ fun RenderSeccion(seccion: Seccion, respuestas: MutableMap<String, Any>) {
                 else Modifier.fillMaxWidth()
             )
     ) {
-        // CUP usa el nombre 'elements'
         seccion.elements.forEach { elemento ->
             RenderElemento(elemento, respuestas)
         }
     }
 }
-/*@Composable
-fun RenderSeccion(
-    seccion: Seccion,
-    respuestas: MutableMap<String, Any>
-) {
-
-    val x = (seccion.x as? Number)?.toFloat() ?: 0f
-    val y = (seccion.y as? Number)?.toFloat() ?: 0f
-    val width = (seccion.width as? Number)?.toFloat() ?: 300f
-    val height = (seccion.height as? Number)?.toFloat() ?: 200f
-    Box(
-        modifier = Modifier
-            .offset(x.dp, y.dp)
-            .width(width.dp)
-            .height(height.dp)
-            .background(obtenerColor(seccion.estilos?.get("background color")))
-            .padding(8.dp)
-    ) {
-
-        if (seccion.orientation == "HORIZONTAL") {
-            Row {
-                seccion.elementos.forEach {
-                    RenderElemento(it, respuestas, seccion.estilos)
-                }
-            }
-        } else {
-            Column {
-                seccion.elementos.forEach {
-                    RenderElemento(it, respuestas, seccion.estilos)
-                }
-            }
-        }
-    }
-}*/

@@ -13,7 +13,6 @@ fun RenderTabla(
     tabla: Tabla,
     respuestas: MutableMap<String, Any>
 ) {
-    // Si no tienes 'columnas' en el modelo, usamos 2 por defecto
     val elementosPorFila = 2
     val filas = tabla.elements.chunked(elementosPorFila)
 

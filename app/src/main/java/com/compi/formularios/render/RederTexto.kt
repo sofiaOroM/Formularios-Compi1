@@ -1,12 +1,9 @@
 package com.compi.formularios.render
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.compi.formularios.modelos.Texto
@@ -22,26 +19,10 @@ fun RenderTexto(texto: Texto) {
     Text(
         text = texto.content.replace("\"", ""),
         fontSize = fontSize.sp,
-        color = colorFinal, // Usar la función obtenerColor que hicimos antes
+        color = colorFinal,
         modifier = Modifier.padding(
             start = (texto.pointX ?: 0.0).dp,
             top = (texto.pointY ?: 0.0).dp
         ).padding(8.dp)
     )
 }
-/*@Composable
-fun RenderTexto(
-    texto: Texto,
-    estilos: Map<String, Any>? = null
-) {
-
-    val color = obtenerColor(estilos?.get("color"))
-    val fontSize = (estilos?.get("text size") as? Number)?.toInt() ?: 16
-
-    Text(
-        text = parsearEmojis(texto.contenido.replace("\"", "")),
-        color = color,
-        fontSize = fontSize.dp.value.sp,
-        style = MaterialTheme.typography.bodyLarge
-    )
-}*/

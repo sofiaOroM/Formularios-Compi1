@@ -28,7 +28,6 @@ fun PantallaEditor(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF121212))
-            // Permitimos scroll en toda la pantalla
             .verticalScroll(scrollEstadoPantalla)
             .padding(16.dp)
     ) {
@@ -124,58 +123,3 @@ fun TablaErrores(errorRaw: String) {
         }
     }
 }
-/*@Composable
-fun PantallaEditor(
-    onGenerar: (String) -> Unit,
-    error: String,
-    codigoInicial: String,
-    onRegresar: () -> Unit
-) {
-
-    var codigo by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF121212))
-            .padding(16.dp)
-    ) {
-
-        Text(
-            "Editor de Formularios",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        EditorCodigo(
-            codigo = codigo,
-            onCodigoChange = { codigo = it }
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Button(
-            onClick = { onGenerar(codigo) },
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Text("Generar formulario")
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // ERRORES
-        if (error.isNotEmpty()) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFB00020))
-            ) {
-                Text(
-                    text = error,
-                    color = Color.White,
-                    modifier = Modifier.padding(10.dp)
-                )
-            }
-        }
-    }
-}*/

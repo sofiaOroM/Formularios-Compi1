@@ -18,7 +18,7 @@ fun PantallaFormulario(
     elementos: List<Elemento>,
     onRegresar: () -> Unit,
     onFinalizar: (Map<String, Any>) -> Unit,
-    onGuardarPKM: (Map<String, Any>) -> Unit // Nueva función para guardar
+    onGuardarPKM: (Map<String, Any>) -> Unit
 ) {
     val respuestas = remember { mutableStateMapOf<String, Any>() }
     val scrollState = rememberScrollState()
@@ -26,9 +26,9 @@ fun PantallaFormulario(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5)) // Un gris muy claro de fondo mejora la vista
+            .background(Color(0xFFF5F5F5))
     ) {
-        // --- BARRA SUPERIOR (TOOLBAR) ---
+        // --- BARRA SUPERIOR ---
         Surface(
             shadowElevation = 4.dp,
             color = MaterialTheme.colorScheme.primary
@@ -78,7 +78,7 @@ fun PantallaFormulario(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Botón secundario
+                // Botón editar
                 OutlinedButton(
                     onClick = onRegresar,
                     modifier = Modifier.weight(1f)
@@ -86,7 +86,7 @@ fun PantallaFormulario(
                     Text("Editar Código")
                 }
 
-                // Botón principal
+                // Botón finalizar
                 Button(
                     onClick = { onFinalizar(respuestas.toMap()) },
                     modifier = Modifier.weight(1f)
@@ -97,62 +97,3 @@ fun PantallaFormulario(
         }
     }
 }
-/*@Composable
-fun PantallaFormulario(
-    elementos: List<Elemento>,
-    onRegresar: () -> Unit,
-    onFinalizar: (Map<String, Any>) -> Unit
-) {
-
-    // Estado para respuestas
-    val respuestas = remember { mutableStateMapOf<String, Any>() }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-
-        Text(
-            "Formulario generado",
-            style = MaterialTheme.typography.titleLarge
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // SCROLL
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1000.dp)
-        ) {
-
-            //RENDER DINÁMICO
-            RenderFormulario(
-                elementos = elementos,
-                respuestas = respuestas
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Button(onClick = onRegresar) {
-                Text("Regresar")
-            }
-
-            Button(
-                onClick = {
-                    onFinalizar(respuestas.toMap())
-                },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Finalizar y Calificar")
-            }
-        }
-    }
-}*/
