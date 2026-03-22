@@ -30,7 +30,6 @@ fun obtenerColor(valor: Any?): Color {
 object PokeApiHelper {
     /**
      * Obtiene una lista de nombres de pokémones en un rango específico.
-     * Se ejecuta en un hilo secundario (IO) para no congelar la pantalla.
      */
     suspend fun obtenerRangoPokemones(inicio: Int, fin: Int): List<String> = withContext(Dispatchers.IO) {
         (inicio..fin).map { id ->
@@ -41,7 +40,7 @@ object PokeApiHelper {
 
                 nombre.replaceFirstChar { it.uppercase() }
             } catch (e: Exception) {
-                "Pokémon #$id" // Si falla el internet, devolvemos el ID
+                "Pokémon #$id" // Si falla el internet, se devuelve el ID
             }
         }
     }

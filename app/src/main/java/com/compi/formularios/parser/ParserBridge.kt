@@ -63,7 +63,7 @@ object ParserBridge {
         return Texto(
             content = attrs["CONTENT"]?.toString() ?: "",
             pointX = getDouble(attrs["POINTX"]),
-            pointY = getDouble(attrs["POINTY"]),
+            pointY = getDouble(attrs["PONTY"]),
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }

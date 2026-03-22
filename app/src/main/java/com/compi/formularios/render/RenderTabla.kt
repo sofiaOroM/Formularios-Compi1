@@ -17,26 +17,25 @@ fun RenderTabla(
     respuestas: MutableMap<String, Any>
 ) {
     // 1. EXTRAER Y NORMALIZAR FILAS
-    // Usamos el nombre que definiste en el CUP: "ELEMENTS"
     val contenido = tabla.elements
 
     @Suppress("UNCHECKED_CAST")
     val filas: List<List<Elemento>> = when {
         contenido.isEmpty() -> {
-            println("DEBUG: Tabla vacía") // Revisa Logcat
+            println("DEBUG: Tabla vacía")
             emptyList()
         }
         contenido[0] is List<*> -> {
             contenido as List<List<Elemento>>
         }
         else -> {
-            // Si el CUP mandó una lista simple, la convertimos a filas de 1 sola celda
+            // Si el CUP mandó una lista simple, filas de 1 sola celda
             contenido.map { listOf(it as Elemento) }
         }
     }
 
     // 2. RENDERIZADO
-    // Si la tabla no tiene ancho definido, le damos uno por defecto para que no sea 0dp
+    // Si la tabla no tiene ancho definido, uno por defecto para que no sea 0dp
     val anchoTabla = (tabla.width ?: 300.0).toDouble().dp
 
     Column(
@@ -49,7 +48,6 @@ fun RenderTabla(
             .border(1.dp, Color.Gray, shape = RoundedCornerShape(4.dp))
     ) {
         if (filas.isEmpty()) {
-            // Esto te ayudará a saber si la tabla está ahí pero vacía
             Box(Modifier.padding(8.dp)) { androidx.compose.material3.Text("Tabla sin datos") }
         }
 

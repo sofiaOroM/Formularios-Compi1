@@ -2,6 +2,15 @@ package com.compi.formularios.render
 
 object ParserEmojis{
 
+
+    private val mapaEmojis = mapOf(
+        "star" to "⭐",
+        "smile" to "😀",
+        "sad" to "😟",
+        "heart" to "❤️",
+        "serious" to "😐",
+        "cat" to "🐱"
+    )
         fun procesar(texto: String): String {
             var resultado = texto.replace("\"", "") // Limpiar comillas
 
@@ -34,4 +43,12 @@ object ParserEmojis{
 
             return resultado
         }
-    }
+
+    fun codificar(texto: String): String {
+        var resultado = texto
+        mapaEmojis.forEach { (nombre, simbolo) ->
+            // Para cambiar emoji real por su etiqueta @[:nombre:]
+            resultado = resultado.replace(simbolo, "@[:$nombre:]")
+        }
+        return resultado
+    }}

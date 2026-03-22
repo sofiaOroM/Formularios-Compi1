@@ -47,7 +47,9 @@ fun PantallaOpciones(
         // SECCIÓN LOCAL
         OutlinedButton(
             onClick = onVerMisFormularios,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text("Mis Formularios", color = Color.White)
@@ -58,10 +60,12 @@ fun PantallaOpciones(
         // SECCIÓN SERVIDOR
         OutlinedButton(
             onClick = onExplorarServidor,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Explorar Formularios", color = Color.Cyan)
+            Text("Explorar Formularios del Servidor", color = Color.Cyan)
         }
 
         Spacer(modifier = Modifier.height(32.dp))

@@ -60,71 +60,23 @@ fun RenderPregunta(
             Spacer(modifier = Modifier.height(12.dp))
 
             when (tipo) {
-    /*Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = ParserEmojis.procesar(llave),
-                color = colorTexto,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            when (tipo) {*/
                 "OPEN" -> {
-                    var textoIngresado by remember { mutableStateOf(respuestas[llave]?.toString() ?: "") }
+                    var textoIngresado by remember {
+                        mutableStateOf(
+                            respuestas[llave]?.toString() ?: ""
+                        )
+                    }
                     OutlinedTextField(
                         value = textoIngresado,
                         onValueChange = {
                             textoIngresado = it
                             respuestas[llave] = it
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                        .heightIn(min = 56.dp),
                         placeholder = { Text("Escribe aquí...") }
                     )
                 }
-
-                /*"DROP" -> {
-                    var expanded by remember { mutableStateOf(false) }
-                    val opcionSeleccionada = respuestas[llave]?.toString() ?: "Selecciona una opción"
-
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded }
-                    ) {
-                        OutlinedTextField(
-                            value = ParserEmojis.procesar(opcionSeleccionada),
-                            onValueChange = {},
-                            readOnly = true, // Evita que el usuario escriba
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
-                        ) {
-                            pregunta.options.forEach { opcion ->
-                                val textoOpcion = opcion.replace("\"", "").trim()
-                                DropdownMenuItem(
-                                    text = { Text(ParserEmojis.procesar(textoOpcion)) },
-                                    onClick = {
-                                        respuestas[llave] = textoOpcion
-                                        expanded = false
-                                    },
-                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                                )
-                            }
-                        }
-                    }
-                }*/
 
                 "DROP" -> {
                     var expanded by remember { mutableStateOf(false) }
@@ -140,7 +92,10 @@ fun RenderPregunta(
                             readOnly = true,
                             trailingIcon = {
                                 if (estaCargando) {
-                                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
                                 } else {
                                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                                 }
@@ -170,13 +125,16 @@ fun RenderPregunta(
                 "MULTIPLE" -> {
                     pregunta.options.forEach { opcion ->
                         val textoOpcion = opcion.replace("\"", "").trim()
-                        val seleccionados = respuestas[llave] as? MutableList<String> ?: mutableListOf()
+                        val seleccionados =
+                            respuestas[llave] as? MutableList<String> ?: mutableListOf()
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = seleccionados.contains(textoOpcion),
                                 onCheckedChange = { checked ->
                                     if (checked) {
-                                        if (!seleccionados.contains(textoOpcion)) seleccionados.add(textoOpcion)
+                                        if (!seleccionados.contains(textoOpcion)) seleccionados.add(
+                                            textoOpcion
+                                        )
                                     } else {
                                         seleccionados.remove(textoOpcion)
                                     }
