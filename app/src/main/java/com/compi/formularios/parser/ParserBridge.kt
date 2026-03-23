@@ -1,16 +1,22 @@
 package com.compi.formularios.parser
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import com.compi.formularios.modelos.*
 import java.io.StringReader
 
 object ParserBridge {
 
     fun parsearFormulario(codigo: String): List<Elemento> {
+        Log.d(TAG, "Iniciando parsearFormulario. Código de entrada:\n$codigo")
         val lexer = Lexer(StringReader(codigo))
         val parser = Parser(lexer)
 
         return try {
             val resultado = parser.parse().value
+
+            Log.d(TAG, "CUP terminó. Tipo de resultado: ${resultado?.javaClass?.simpleName}")
+            Log.d(TAG, "Estructura cruda de CUP: $resultado")
 
             val erroresLexicos = lexer.lexicalErrors
             val erroresSintacticos = parser.syntaxErrors
@@ -22,7 +28,14 @@ object ParserBridge {
 
             @Suppress("UNCHECKED_CAST")
             val lista = resultado as? List<Map<String, Any>>
-            lista?.mapNotNull { convertir(it) } ?: emptyList()
+
+            Log.d(TAG, "Iniciando conversión de ${lista?.size ?: 0} elementos principales...")
+            val elementosMapeados = lista?.mapNotNull { convertir(it) } ?: emptyList()
+
+            Log.d(TAG, "Salida final del puente: Se cargaron ${elementosMapeados.size} elementos.")
+            Log.d(TAG, "Salida final del puente: Se cargaron ${elementosMapeados} elementos.")
+
+            elementosMapeados
 
         } catch (e: Exception) {
             throw Exception(e.message ?: "Error desconocido")
@@ -51,10 +64,10 @@ object ParserBridge {
         return Seccion(
             elements = elementos,
             orientation = attrs["ORIENTATION"]?.toString() ?: "VERTICAL",
-            width = getDouble(attrs["WIDTH"]),
-            height = getDouble(attrs["HEIGHT"]),
-            pointX = getDouble(attrs["POINTX"]),
-            pointY = getDouble(attrs["POINTY"]),
+            width = getDouble(attrs["WIDTH"]) ?: 380.0,
+            height = getDouble(attrs["HEIGHT"]) ?: 400.0,
+            pointX = getDouble(attrs["POINTX"]) ?: 10.0,
+            pointY = getDouble(attrs["POINTY"]) ?: 130.0,
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }
@@ -62,8 +75,8 @@ object ParserBridge {
     private fun convertirTexto(attrs: Map<*, *>): Texto {
         return Texto(
             content = attrs["CONTENT"]?.toString() ?: "",
-            pointX = getDouble(attrs["POINTX"]),
-            pointY = getDouble(attrs["PONTY"]),
+            pointX = getDouble(attrs["POINTX"]) ?: 10.0,
+            pointY = getDouble(attrs["POINTY"]) ?: 10.0,
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }
@@ -79,10 +92,10 @@ object ParserBridge {
 
         return Tabla(
             elements = filasConvertidas,
-            width = getDouble(attrs["WIDTH"]),
-            height = getDouble(attrs["HEIGHT"]),
-            pointX = getDouble(attrs["POINTX"]),
-            pointY = getDouble(attrs["POINTY"]),
+            width = getDouble(attrs["WIDTH"]) ?: 380.0,
+            height = getDouble(attrs["HEIGHT"]) ?: 300.0,
+            pointX = getDouble(attrs["POINTX"]) ?: 10.0,
+            pointY = getDouble(attrs["POINTY"]) ?: 10.0,
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }
@@ -102,8 +115,8 @@ object ParserBridge {
             label = attrs["LABEL"]?.toString() ?: "",
             options = listaFinal,
             correct = attrs["CORRECT"],
-            pointX = getDouble(attrs["POINTX"]),
-            pointY = getDouble(attrs["POINTY"]),
+            pointX = getDouble(attrs["POINTX"]) ?: 10.0,
+            pointY = getDouble(attrs["POINTY"]) ?: 10.0,
             estilos = attrs["STYLES"] as? Map<String, Any>
         )
     }

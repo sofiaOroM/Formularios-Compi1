@@ -6,11 +6,11 @@ object LectorGuardado {
         val lineas = contenidoGuardado.lines()
         val builderCUP = StringBuilder()
 
-        var nivelAnidamiento = 0 // 0 = Raíz (sin comas), >0 = Sección/Tabla (con comas)
+        var nivelAnidamiento = 0
         var esPrimerElementoEnBloque = true
+        val pilaEstructuras = java.util.Stack<String>()
 
         fun prepararNuevoElemento() {
-            // SOLO se pone coma si estamos dentro de una sección/tabla y NO es el primer elemento
             if (nivelAnidamiento > 0 && !esPrimerElementoEnBloque) {
                 builderCUP.append(",\n")
             }
@@ -20,41 +20,53 @@ object LectorGuardado {
         for (linea in lineas) {
             val trimLinea = linea.trim()
 
-            // Ignoramos etiquetas de cierre estructurales del XML intermedio
             if (trimLinea.startsWith("###") || trimLinea.startsWith("Author:") ||
                 trimLinea.startsWith("Description:") || trimLinea == "<content>" ||
                 trimLinea == "</content>" || trimLinea == "<element>" || trimLinea == "</element>" ||
-                trimLinea == "<style>" || trimLinea == "</style>" || trimLinea == "<line>" || trimLinea == "</line>") {
+                trimLinea == "<style>" || trimLinea == "</style>" ) {
                 continue
             }
 
             // TEXTO
             if (trimLinea.startsWith("<text=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "text")
-                if (valores.size >= 3) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    // Filtramos el ancho y alto para que no asfixien a Compose
-                    val width = limpiarNumeroDimension(valores[0], 350)
-                    val height = limpiarNumeroDimension(valores[1], 50)
-                    val content = limpiarComillasDobles(valores[2])
+
+                    val esSinDimensiones = valores[0].startsWith("\"")
+                    val content = if (esSinDimensiones) limpiarComillasDobles(valores[0]) else limpiarComillasDobles(valores[2])
 
                     builderCUP.append("TEXT [\n")
                     builderCUP.append("    content: \"$content\"")
-                    if (width > 0) builderCUP.append(",\n    width: $width")
-                    if (height > 0) builderCUP.append(",\n    height: $height")
-                    builderCUP.append("\n]")
+
+                    // Se fuerzan dimensiones estándar en celdas de texto para que no midan 0 dp
+                    val x = limpiarNumeroPosicion(valores[0])
+                    val y = limpiarNumeroPosicion(valores[1])
+
+                    builderCUP.append(",\n    width: 350")
+                    builderCUP.append(",\n    height: 80")
+                    builderCUP.append(",\n    pointX: $x" )
+                    builderCUP.append(",\n    pointY: $y\n]")
                 }
             }
 
-            // PREGUNTA ABIERTA
+            // PREGUNTA ABIERTA (OPEN)
             else if (trimLinea.startsWith("<open=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "open")
-                if (valores.size >= 3) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val label = limpiarComillasDobles(valores[2])
+
+                    val esSinDimensiones = valores[0].startsWith("\"")
+
+                    // Extraemos los datos: Si no trae dimensiones, usamos valores por defecto
+                    val label = if (esSinDimensiones) limpiarComillasDobles(valores[0]) else limpiarComillasDobles(valores[2])
+                    val w = if (!esSinDimensiones) limpiarNumeroDimension(valores[0], 350) else 350
+                    val h = if (!esSinDimensiones) limpiarNumeroDimension(valores[1], 80) else 80
 
                     builderCUP.append("OPEN_QUESTION [\n")
-                    builderCUP.append("    label: \"$label\"\n")
+                    builderCUP.append("    label: \"$label\",\n")
+                    builderCUP.append("    width: $w,\n")  // Usamos el ancho del archivo (blindado)
+                    builderCUP.append("    height: $h\n")  // Usamos el alto del archivo (blindado)
                     builderCUP.append("]")
                 }
             }
@@ -62,69 +74,100 @@ object LectorGuardado {
             // SECCIÓN
             else if (trimLinea.startsWith("<section=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "section")
-                if (valores.size >= 5) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val width = limpiarNumeroDimension(valores[0], 380) // Secciones usan el ancho completo
-                    val height = limpiarNumeroDimension(valores[1], 450) // Altura generosa para el scroll
-                    val x = limpiarNumero(valores[2])
-                    val y = limpiarNumero(valores[3])
-                    val orientation = valores[4].trim()
+
+                    val esSinDimensiones = valores[0].startsWith("\"") || valores[0].equals("VERTICAL", ignoreCase = true) || valores[0].equals("HORIZONTAL", ignoreCase = true)
 
                     builderCUP.append("SECTION [\n")
-                    builderCUP.append("    width: $width,\n")
-                    builderCUP.append("    height: $height,\n")
+
+                    val w = if (!esSinDimensiones && valores.size >= 5) limpiarNumeroDimension(valores[0], 380) else 380
+                    val h = if (!esSinDimensiones && valores.size >= 5) limpiarNumeroDimension(valores[1], 450) else 450
+                    val x = limpiarNumeroPosicion(valores[2])
+                    val y = limpiarNumeroPosicion(valores[3])
+                    val orientation = if (!esSinDimensiones && valores.size >= 5) valores[4].trim() else "VERTICAL"
+
+                    builderCUP.append("    width: $w,\n")
+                    builderCUP.append("    height: $h,\n")
                     builderCUP.append("    pointX: $x,\n")
                     builderCUP.append("    pointY: $y,\n")
                     builderCUP.append("    orientation: $orientation,\n")
                     builderCUP.append("    elements: { [\n")
 
+                    pilaEstructuras.push("SECTION")
                     nivelAnidamiento++
                     esPrimerElementoEnBloque = true
                 }
             }
 
             else if (trimLinea == "</section>") {
-                builderCUP.append("\n    ] }\n]")
-                nivelAnidamiento--
-                esPrimerElementoEnBloque = false
+                if (pilaEstructuras.isNotEmpty() && pilaEstructuras.peek() == "SECTION") {
+                    pilaEstructuras.pop()
+                    builderCUP.append("\n    ] }\n]")
+                    nivelAnidamiento--
+                    esPrimerElementoEnBloque = false
+                }
             }
 
             // TABLA
             else if (trimLinea.startsWith("<table=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "table")
-                if (valores.size >= 4) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val width = limpiarNumeroDimension(valores[0], 360) // Ajuste a la pantalla
-                    val height = limpiarNumeroDimension(valores[1], 300)
-                    val x = limpiarNumero(valores[2])
-                    val y = limpiarNumero(valores[3])
+
+                    val esSinDimensiones = valores[0].startsWith("\"") || valores[0].startsWith("{")
 
                     builderCUP.append("TABLE [\n")
-                    builderCUP.append("    width: $width,\n")
-                    builderCUP.append("    height: $height,\n")
+
+                    val w = if (!esSinDimensiones && valores.size >= 4) limpiarNumeroDimension(valores[0], 380) else 380
+                    val h = if (!esSinDimensiones && valores.size >= 4) limpiarNumeroDimension(valores[1], 300) else 300
+                    val x = limpiarNumeroPosicion(valores[2])
+                    val y = limpiarNumeroPosicion(valores[3])
+
+                    builderCUP.append("    width: $w,\n")
+                    builderCUP.append("    height: $h,\n")
                     builderCUP.append("    pointX: $x,\n")
                     builderCUP.append("    pointY: $y,\n")
-                    builderCUP.append("    elements: { [\n")
+                    builderCUP.append("    elements: { \n") // Lista de matrices bidimensionales de CUP
 
+                    pilaEstructuras.push("TABLE")
                     nivelAnidamiento++
                     esPrimerElementoEnBloque = true
                 }
             }
 
-            else if (trimLinea == "</table>") {
-                builderCUP.append("\n    ] }\n]")
+            else if (trimLinea == "<line>") {
+                prepararNuevoElemento()
+                builderCUP.append("[\n")
+                nivelAnidamiento++
+                esPrimerElementoEnBloque = true
+            }
+
+            else if (trimLinea == "</line>") {
+                builderCUP.append("\n]")
                 nivelAnidamiento--
                 esPrimerElementoEnBloque = false
             }
 
-            //  SELECT_QUESTION
+            else if (trimLinea == "</table>") {
+                if (pilaEstructuras.isNotEmpty() && pilaEstructuras.peek() == "TABLE") {
+                    pilaEstructuras.pop()
+                    builderCUP.append("\n    }\n]")
+                    nivelAnidamiento--
+                    esPrimerElementoEnBloque = false
+                }
+            }
+
+            // SELECT_QUESTION
             else if (trimLinea.startsWith("<select=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "select")
-                if (valores.size >= 5) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val label = limpiarComillasDobles(valores[2])
-                    val options = limpiarOpciones(valores[3])
-                    val correct = limpiarNumero(valores[4])
+
+                    val esSinDimensiones = valores[0].startsWith("\"")
+                    val label = if (esSinDimensiones) limpiarComillasDobles(valores[0]) else limpiarComillasDobles(valores[2])
+                    val options = if (esSinDimensiones) limpiarOpciones(valores[1]) else limpiarOpciones(valores[3])
+                    val correct = if (esSinDimensiones) limpiarNumero(valores[2]) else limpiarNumero(valores[4])
 
                     builderCUP.append("SELECT_QUESTION [\n")
                     builderCUP.append("    label: \"$label\",\n")
@@ -137,10 +180,12 @@ object LectorGuardado {
             // DROP_QUESTION
             else if (trimLinea.startsWith("<drop=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "drop")
-                if (valores.size >= 4) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val label = limpiarComillasDobles(valores[2])
-                    val options = limpiarOpciones(valores[3])
+
+                    val esSinDimensiones = valores[0].startsWith("\"")
+                    val label = if (esSinDimensiones) limpiarComillasDobles(valores[0]) else limpiarComillasDobles(valores[2])
+                    val options = if (esSinDimensiones) limpiarOpciones(valores[1]) else limpiarOpciones(valores[3])
 
                     builderCUP.append("DROP_QUESTION [\n")
                     builderCUP.append("    label: \"$label\",\n")
@@ -149,14 +194,16 @@ object LectorGuardado {
                 }
             }
 
-            //MULTIPLE_QUESTION
+            // MULTIPLE_QUESTION
             else if (trimLinea.startsWith("<multiple=")) {
                 val valores = extraerValoresEntrePicos(trimLinea, "multiple")
-                if (valores.size >= 5) {
+                if (valores.isNotEmpty()) {
                     prepararNuevoElemento()
-                    val label = limpiarComillasDobles(valores[2])
-                    val options = limpiarOpciones(valores[3])
-                    val correctList = limpiarArregloNumerico(valores[4])
+
+                    val esSinDimensiones = valores[0].startsWith("\"")
+                    val label = if (esSinDimensiones) limpiarComillasDobles(valores[0]) else limpiarComillasDobles(valores[2])
+                    val options = if (esSinDimensiones) limpiarOpciones(valores[1]) else limpiarOpciones(valores[3])
+                    val correctList = if (esSinDimensiones) limpiarArregloNumerico(valores[2]) else limpiarArregloNumerico(valores[4])
 
                     builderCUP.append("MULTIPLE_QUESTION [\n")
                     builderCUP.append("    label: \"$label\",\n")
@@ -216,14 +263,18 @@ object LectorGuardado {
         return output
     }
 
-    // Nueva función de sanitización para dimensiones gráficas de Compose
     private fun limpiarNumeroDimension(s: String, valorMinimoSeguro: Int): Int {
         val numero = s.toDoubleOrNull()?.toInt() ?: 0
-        return if (numero < 100) valorMinimoSeguro else numero
+        return if (numero < 20) valorMinimoSeguro else numero //  Evita 0 dp que rompan Layouts
     }
 
     private fun limpiarNumero(s: String): Int {
         return s.toDoubleOrNull()?.toInt() ?: 0
+    }
+
+    private fun limpiarNumeroPosicion(s: String): Int {
+        val numero = s.toDoubleOrNull()?.toInt() ?: 10
+        return if (numero < 5) 10 else numero
     }
 
     private fun limpiarComillasDobles(s: String): String {

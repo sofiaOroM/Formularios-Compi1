@@ -1,9 +1,13 @@
 package com.compi.formularios.ui
 
+import android.icu.text.ListFormatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -84,8 +88,9 @@ fun PantallaFormulario(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onRegresar) {
-                    Text("VOLVER", color = Color.White)
+                IconButton(onClick = onRegresar) {
+                    Icon(Icons.Default.Home,contentDescription = "Principal", tint = Color.White
+                    )
                 }
                 Text("Formulario", color = Color.White, style = MaterialTheme.typography.titleLarge)
 

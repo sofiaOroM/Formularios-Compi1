@@ -31,11 +31,11 @@ object SerializarForm {
         val attrs = t.estilos ?: emptyMap()
 
         // leer de la propiedad de Kotlin, si no existe, busca en el mapa de CUP
-        val w = resolverDimensionReal(buscarValorCrudo(attrs, "WIDTH"))
-        val h = resolverDimensionReal(buscarValorCrudo(attrs, "HEIGHT"))
+        val X = resolverDimensionReal(buscarValorCrudo(attrs, "POINTX"))
+        val Y = resolverDimensionReal(buscarValorCrudo(attrs, "POINTY"))
 
         val sb = StringBuilder()
-        sb.append("<text=$w,$h,\"$content\">\n")
+        sb.append("<text=$X,$Y,\"$content\">\n")
         sb.append(serializarEstilosDesdeAttrs(attrs))
         sb.append("</text>\n")
         return sb.toString()
@@ -102,7 +102,7 @@ object SerializarForm {
         } else ""
 
         val sb = StringBuilder()
-        sb.append("<$tag=$w,$h,\"$label\"$opcionesPart>\n")
+        sb.append("<$tag=\"$label\"$opcionesPart>\n")
         sb.append(serializarEstilosDesdeAttrs(attrs))
         sb.append("</$tag>\n")
         return sb.toString()
@@ -138,7 +138,7 @@ object SerializarForm {
 
     private fun buscarValorCrudo(mapa: Map<String, Any>, llaveBuscada: String): Any? {
         for ((key, value) in mapa) {
-            // 🚨 Quitamos las comillas físicas de la llave antes de comparar
+            // Quitamos las comillas físicas de la llave antes de comparar
             val llaveLimpia = key.toString()
                 .replace("\"", "")
                 .trim()
@@ -161,8 +161,6 @@ object SerializarForm {
             else -> strValor.toDoubleOrNull() ?: 0.0
         }
     }
-
-
 
     fun obtenerFechaActual(): String {
 

@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import com.compi.formularios.modelos.Elemento
 import com.compi.formularios.parser.ParserBridge
+import com.compi.formularios.parser.guardado.ParserBridgeGuardado
 import com.compi.formularios.ui.PantallaEditor
 import com.compi.formularios.ui.PantallaFormulario
 import com.compi.formularios.ui.PantallaMisFormularios
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
 
                     "formulario" -> PantallaFormulario(
                         elementos = elementosFormulario,
-                        onRegresar = { pantallaActual = "editor" },
+                        onRegresar = { pantallaActual = "opciones" },
                         onFinalizar = { respuestas ->
                             guardarArchivoReporteTxt(respuestas)
                             pantallaActual = "opciones"
@@ -89,24 +90,25 @@ class MainActivity : ComponentActivity() {
                     )
 
                     "mis_formularios" -> PantallaMisFormularios(
-                        onRegresar = { pantallaActual = "opciones" },
-                        onCargarFormulario = { nombreArchivo, contenido ->
-                            try {
-                                val codigoParaCUP = LectorGuardado.traducirAParserOriginal(contenido)
-                                android.util.Log.d("TRADUCTOR_CUP", "--- Código generado para CUP --- \n$codigoParaCUP\n---------------------------------")
-                                val elementosCargados = ParserBridge.parsearFormulario(codigoParaCUP)
-                                if (elementosCargados.isNotEmpty()) {
-                                    elementosFormulario = elementosCargados
-                                    pantallaActual = "formulario" // Salta directamente a contestar el formulario local
-                                    runOnUiThread {
-                                        Toast.makeText(this, "Formulario $nombreArchivo cargado con éxito!", Toast.LENGTH_SHORT).show()
-                                    }                                }
-                            } catch (e: Exception) {
+                    onRegresar = { pantallaActual = "opciones" },
+                    onCargarFormulario = { nombreArchivo, contenido ->
+                        try {
+                            val codigoParaCUP = LectorGuardado.traducirAParserOriginal(contenido)
+                            android.util.Log.d("TRADUCTOR_CUP", "--- Código generado para CUP --- \n$codigoParaCUP\n---------------------------------")
+                            val elementosCargados = ParserBridge.parsearFormulario(codigoParaCUP)
+                            if (elementosCargados.isNotEmpty()) {
+                                elementosFormulario = elementosCargados
+                                pantallaActual = "formulario" // Salta directamente a contestar el formulario local
                                 runOnUiThread {
-                                    Toast.makeText(this, "Error al interpretar el archivo local.", Toast.LENGTH_LONG).show()
-                                }                            }
-                        }
-                    )
+                                    Toast.makeText(this, "Formulario $nombreArchivo cargado con éxito!", Toast.LENGTH_SHORT).show()
+                                }                                }
+                        } catch (e: Exception) {
+                            runOnUiThread {
+                                Toast.makeText(this, "Error al interpretar el archivo local. $e", Toast.LENGTH_LONG).show()
+                            }                            }
+                    }
+                        )
+
 
                     "explorar" -> PantallaServidor(
                         onRegresar = { pantallaActual = "opciones" },
@@ -125,7 +127,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             } catch (e: Exception) {
                                 runOnUiThread {
-                                    Toast.makeText(this@MainActivity, "No se pudo interpretar el archivo .pkm", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(this@MainActivity, "No se pudo interpretar el archivo .pkm $e" , Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
@@ -156,8 +158,6 @@ class MainActivity : ComponentActivity() {
         try {
             val sdf = java.text.SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", java.util.Locale.getDefault())
             val fechaFormateada = sdf.format(java.util.Date())
-            val nombreArchivo = "Reporte_$fechaFormateada.txt"
-
             val contenido = StringBuilder().apply {
                 append("SOLUCIÓN DE FORMULARIO\n")
                 append("Autor: Estudiante de Compiladores\n")
@@ -170,7 +170,6 @@ class MainActivity : ComponentActivity() {
                     append("------------------------------------\n")
                 }
             }
-            println("--- ARCHIVO GENERADO ---\n$contenido")
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -197,7 +196,7 @@ class MainActivity : ComponentActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "¡Subido a tu computadora!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "¡Subido a la computadora!", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
