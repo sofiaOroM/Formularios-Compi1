@@ -11,5 +11,5 @@ object ClientRed {
         .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    const val BASE_URL = "http://192.168.0.21:5000"
+    const val BASE_URL = "http://192.168.1.10:5000"
 }

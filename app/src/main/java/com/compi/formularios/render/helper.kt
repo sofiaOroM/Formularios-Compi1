@@ -37,6 +37,9 @@ fun obtenerColor(mapa: Map<String, Any>?, key: String, default: Color = Color.Un
                 "GREEN" -> Color.Green
                 "BLACK" -> Color.Black
                 "WHITE" -> Color.White
+                "PURPLE" -> Color.Magenta
+                "SKY" -> Color(128,0,128)
+                "YELLOW" -> Color.Yellow
                 "TRANSPARENT" -> Color.Transparent
                 else -> default
             }

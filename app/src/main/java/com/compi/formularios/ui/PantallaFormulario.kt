@@ -1,6 +1,7 @@
 package com.compi.formularios.ui
 
 import android.icu.text.ListFormatter
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.compi.formularios.modelos.Elemento
+import com.compi.formularios.modelos.Pregunta
+import com.compi.formularios.modelos.Seccion
+import com.compi.formularios.modelos.Tabla
+import com.compi.formularios.modelos.Texto
 import com.compi.formularios.render.RenderFormulario
 import com.compi.formularios.util.SerializarForm.obtenerFechaActual
 
@@ -31,6 +36,92 @@ fun PantallaFormulario(
     var mostrarDialogoGuardar by remember { mutableStateOf(false) }
     var nombreAutor by remember { mutableStateOf("") }
     var nombreArchivo by remember { mutableStateOf("") }
+
+    var mostrarNota by remember { mutableStateOf(false) }
+    var aciertos by remember { mutableIntStateOf(0) }
+    var totalPreguntasEvaluables by remember { mutableIntStateOf(0) }
+    var notaFinal by remember { mutableStateOf("") }
+
+    // FUNCIÓN DE CALIFICACIÓN INTELIGENTE (Arregla UI y Nota)
+    fun calificarFormulario() {
+        var buenas = 0
+        var total = 0
+
+        fun evaluarLista(lista: List<Elemento>) {
+            lista.forEach { elemento ->
+                when (elemento) {
+                    is Pregunta -> {
+                        val tipoUpper = elemento.type.uppercase()
+                        if (tipoUpper != "OPEN") {
+                            total++
+                            val respuestaUsuario = respuestas[elemento.label]
+
+                            if (respuestaUsuario != null) {
+                                // Limpiamos las opciones del CUP de comillas raras
+                                val opcionesLimpia = elemento.options.map { it.replace("\"", "").trim() }
+
+                                when (tipoUpper) {
+                                    "SELECT", "DROP" -> {
+                                        val textoUsuario = respuestaUsuario.toString().trim()
+
+                                        // 🔍 1. Obtenemos el índice numérico que guardó CUP
+                                        val indiceCorrectoCUP = when (val c = elemento.correct) {
+                                            is Number -> c.toInt()
+                                            is String -> c.toDoubleOrNull()?.toInt() ?: -1
+                                            else -> -1
+                                        }
+
+                                        // 🔍 2. Obtenemos el TEXTO real que corresponde a ese índice
+                                        val textoCorrectoCUP = if (indiceCorrectoCUP in opcionesLimpia.indices) {
+                                            opcionesLimpia[indiceCorrectoCUP]
+                                        } else ""
+
+                                        android.util.Log.d("CALIFICACION", "Comparando Texto: Usuario('$textoUsuario') == CUP('$textoCorrectoCUP')")
+
+                                        if (textoCorrectoCUP.isNotEmpty() && textoUsuario == textoCorrectoCUP) {
+                                            buenas++
+                                        }
+                                    }
+
+                                    "MULTIPLE" -> {
+                                        val seleccionadosUsuario = (respuestaUsuario as? List<*>)?.map { it.toString().trim() } ?: emptyList()
+
+                                        // Traducimos los índices numéricos de CUP a texto real
+                                        val correctosListRaw = (elemento.correct as? List<*>) ?: emptyList<Any>()
+                                        val indicesCorrectos = correctosListRaw.mapNotNull { it?.toString()?.toDoubleOrNull()?.toInt() }
+
+                                        val textosCorrectosCUP = indicesCorrectos.mapNotNull { idx ->
+                                            if (idx in opcionesLimpia.indices) opcionesLimpia[idx] else null
+                                        }
+
+                                        android.util.Log.d("CALIFICACION", "Comparando Listas: User $seleccionadosUsuario == CUP $textosCorrectosCUP")
+
+                                        if (seleccionadosUsuario.isNotEmpty() && seleccionadosUsuario.sorted() == textosCorrectosCUP.sorted()) {
+                                            buenas++
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is Seccion -> evaluarLista(elemento.elements)
+                    is Tabla -> elemento.elements.forEach { fila -> evaluarLista(fila) }
+                    is Texto -> {}
+                    else -> {}
+                }
+            }
+        }
+
+        evaluarLista(elementos)
+
+        aciertos = buenas
+        totalPreguntasEvaluables = total
+
+        val calculo = if (total > 0) (buenas.toFloat() / total) * 100 else 0f
+        notaFinal = String.format("%.1f", calculo)
+
+        mostrarNota = true
+    }
 
     if (mostrarDialogoGuardar) {
         AlertDialog(
@@ -138,7 +229,7 @@ fun PantallaFormulario(
 
                 // Botón finalizar
                 Button(
-                    onClick = { onFinalizar(respuestas.toMap()) },
+                    onClick = { calificarFormulario() },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Finalizar y Calificar")

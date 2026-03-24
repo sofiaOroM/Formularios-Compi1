@@ -17,6 +17,7 @@ import com.compi.formularios.ui.PantallaServidor // Importa la pantalla que crea
 import com.compi.formularios.ui.theme.FormulariosTheme
 import com.compi.formularios.util.ClientRed
 import com.compi.formularios.util.LectorGuardado
+import com.compi.formularios.util.LectorGuardado.traducirAParserOriginal
 import com.compi.formularios.util.SerializarForm
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -94,7 +95,7 @@ class MainActivity : ComponentActivity() {
                     onRegresar = { pantallaActual = "opciones" },
                     onCargarFormulario = { nombreArchivo, contenido ->
                         try {
-                            val codigoParaCUP = LectorGuardado.traducirAParserOriginal(contenido)
+                            val codigoParaCUP = traducirAParserOriginal(contenido)
                             android.util.Log.d("TRADUCTOR_CUP", "--- Código generado para CUP --- \n$codigoParaCUP\n---------------------------------")
                             val elementosCargados = ParserBridge.parsearFormulario(codigoParaCUP)
                             if (elementosCargados.isNotEmpty()) {
