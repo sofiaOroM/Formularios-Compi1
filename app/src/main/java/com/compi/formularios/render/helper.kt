@@ -20,7 +20,6 @@ private fun obtenerValorLimpio(mapa: Map<String, Any>?, llaveBuscada: String): A
     return null
 }
 
-// 🎨 Lee Color (Base, Hex, RGB)
 fun obtenerColor(mapa: Map<String, Any>?, key: String, default: Color = Color.Unspecified): Color {
     val crudo = obtenerValorLimpio(mapa, key)?.toString()?.replace("\"", "")?.trim() ?: return default
     if (crudo.isEmpty()) return default
@@ -47,7 +46,6 @@ fun obtenerColor(mapa: Map<String, Any>?, key: String, default: Color = Color.Un
     }
 }
 
-// 🔠 Lee Fuentes
 fun obtenerFuente(mapa: Map<String, Any>?): FontFamily {
     val crudo = (obtenerValorLimpio(mapa, "font family") ?: obtenerValorLimpio(mapa, "font_family"))
         ?.toString()?.replace("\"", "")?.trim()?.uppercase() ?: ""
@@ -60,7 +58,6 @@ fun obtenerFuente(mapa: Map<String, Any>?): FontFamily {
     }
 }
 
-// 📏 Lee Tamaños
 fun obtenerTamanioLetra(mapa: Map<String, Any>?, default: Int = 16): TextUnit {
     val crudo = (obtenerValorLimpio(mapa, "text size") ?: obtenerValorLimpio(mapa, "text_size"))
         ?.toString()?.replace("\"", "")?.trim() ?: return default.sp

@@ -8,11 +8,47 @@ import java.util.Locale
 
 object SerializarForm {
 
-    fun serialize(elementos: List<Elemento>, autor: String, descripcion: String): String {
-        val sb = StringBuilder()
-        sb.append("###\n    Author: $autor\n    Description: $descripcion\n###\n\n")
+    private var contadorSeccion = 0
+    private var contadorTabla = 0
+    private var contadorOpen = 0
+    private var contadorDrop = 0
+    private var contadorSelect = 0
+    private var contadorMultiple = 0
 
-        elementos.forEach { sb.append(serializarElemento(it)) }
+    private fun reiniciarContadores() {
+        contadorSeccion = 0
+        contadorTabla = 0
+        contadorOpen = 0
+        contadorDrop = 0
+        contadorSelect = 0
+        contadorMultiple = 0
+    }
+    fun serialize(elementos: List<Elemento>, autor: String, descripcion: String): String {
+        reiniciarContadores()
+        val cuerpoSb = StringBuilder()
+
+        elementos.forEach { cuerpoSb.append(serializarElemento(it)) }
+
+        val totalPreguntas = contadorOpen + contadorDrop + contadorSelect + contadorMultiple
+
+        val sb = StringBuilder()
+        sb.append("###\n")
+        sb.append("    Author: $autor\n")
+        sb.append("    Description: $descripcion\n")
+        sb.append("    Date: ${obtenerFechaActual()}\n")
+        sb.append("    Time: ${obtenerHoraActual()}\n")
+        sb.append("    ---------------------------\n")
+        sb.append("    Estadísticas del Formulario:\n")
+        sb.append("      - Secciones: $contadorSeccion\n")
+        sb.append("      - Tablas: $contadorTabla\n")
+        sb.append("      - Total de Preguntas: $totalPreguntas\n")
+        sb.append("        Abiertas: $contadorOpen\n")
+        sb.append("        Desplegables: $contadorDrop\n")
+        sb.append("        Selección: $contadorSelect\n")
+        sb.append("        Múltiples: $contadorMultiple\n")
+        sb.append("###\n\n")
+
+        sb.append(cuerpoSb.toString())
         return sb.toString()
     }
 
@@ -42,6 +78,7 @@ object SerializarForm {
     }
 
     private fun serializarSeccion(s: Seccion): String {
+        contadorSeccion++
         val attrs = s.estilos ?: emptyMap()
 
         val w = s.width ?: resolverDimensionReal(buscarValorCrudo(attrs, "WIDTH"))
@@ -63,6 +100,7 @@ object SerializarForm {
     }
 
     private fun serializarTabla(t: Tabla): String {
+        contadorTabla++
         val attrs = t.estilos ?: emptyMap()
 
         val w = t.width ?: resolverDimensionReal(buscarValorCrudo(attrs, "WIDTH"))
@@ -90,6 +128,12 @@ object SerializarForm {
     }
 
     private fun serializarPregunta(p: Pregunta): String {
+        when (p.type.uppercase()) {
+            "OPEN" -> contadorOpen++
+            "DROP" -> contadorDrop++
+            "SELECT" -> contadorSelect++
+            "MULTIPLE" -> contadorMultiple++
+        }
         val attrs = p.estilos ?: emptyMap()
         val label = ParserEmojis.codificar(p.label)
 
