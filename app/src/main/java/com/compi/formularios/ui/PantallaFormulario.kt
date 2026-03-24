@@ -21,6 +21,7 @@ import com.compi.formularios.util.SerializarForm.obtenerFechaActual
 @Composable
 fun PantallaFormulario(
     elementos: List<Elemento>,
+    onMenu: () -> Unit,
     onRegresar: () -> Unit,
     onFinalizar: (Map<String, Any>) -> Unit,
     onGuardarPKM: (autor: String, archivo:String, descripcion: String) -> Unit
@@ -88,7 +89,7 @@ fun PantallaFormulario(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onRegresar) {
+                IconButton(onClick = onMenu) {
                     Icon(Icons.Default.Home,contentDescription = "Principal", tint = Color.White
                     )
                 }

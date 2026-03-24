@@ -71,7 +71,8 @@ class MainActivity : ComponentActivity() {
 
                     "formulario" -> PantallaFormulario(
                         elementos = elementosFormulario,
-                        onRegresar = { pantallaActual = "opciones" },
+                        onRegresar = { pantallaActual = "editor" },
+                        onMenu = { pantallaActual = "opciones" },
                         onFinalizar = { respuestas ->
                             guardarArchivoReporteTxt(respuestas)
                             pantallaActual = "opciones"

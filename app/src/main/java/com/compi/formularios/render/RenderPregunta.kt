@@ -1,5 +1,6 @@
 package com.compi.formularios.render
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -7,7 +8,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.compi.formularios.modelos.Pregunta
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -17,7 +17,12 @@ fun RenderPregunta(
     respuestas: MutableMap<String, Any>
 ) {
     val estilos = pregunta.estilos
-    val colorTexto = obtenerColor(estilos?.get("color"))
+
+    // 🎨 1. Usamos el mapeador seguro para ignorar ""comillas dobles"" y mayúsculas
+    val colorTexto = obtenerColor(estilos, "color")
+    val colorFondoCard = obtenerColor(estilos, "background color", default = MaterialTheme.colorScheme.surface)
+    val fuente = obtenerFuente(estilos)
+    val tamanio = obtenerTamanioLetra(estilos)
     val tipo = pregunta.type.uppercase()
     val llave = pregunta.label.replace("\"", "").trim()
     var opcionesDinamicas by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -48,13 +53,15 @@ fun RenderPregunta(
     Card(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = colorFondoCard),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = ParserEmojis.procesar(llave),
                 color = colorTexto,
-                style = MaterialTheme.typography.titleMedium
+                fontFamily = fuente,
+                fontSize = tamanio
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -74,7 +81,7 @@ fun RenderPregunta(
                         },
                         modifier = Modifier
                         .heightIn(min = 56.dp),
-                        placeholder = { Text("Escribe aquí...") }
+                        placeholder = { Text("Escribe aquí...", color = colorTexto.copy(alpha = 0.6f)) }
                     )
                 }
 
@@ -106,11 +113,12 @@ fun RenderPregunta(
                         if (!estaCargando) {
                             ExposedDropdownMenu(
                                 expanded = expanded,
-                                onDismissRequest = { expanded = false }
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.background(colorFondoCard)
                             ) {
                                 opcionesDinamicas.forEach { opcion ->
                                     DropdownMenuItem(
-                                        text = { Text(opcion) },
+                                        text = { Text(opcion, color = colorTexto, fontFamily = fuente)},
                                         onClick = {
                                             respuestas[llave] = opcion
                                             expanded = false
@@ -141,7 +149,10 @@ fun RenderPregunta(
                                     respuestas[llave] = seleccionados.toMutableList()
                                 }
                             )
-                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto)
+                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto,
+                                fontFamily = fuente,
+                                fontSize = tamanio,
+                                modifier = Modifier)
                         }
                     }
                 }
@@ -154,7 +165,8 @@ fun RenderPregunta(
                                 selected = (respuestas[llave] == textoOpcion),
                                 onClick = { respuestas[llave] = textoOpcion }
                             )
-                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto)
+                            Text(ParserEmojis.procesar(textoOpcion), color = colorTexto, fontFamily = fuente,
+                                fontSize = tamanio)
                         }
                     }
                 }
